@@ -46,7 +46,7 @@ makeDoc (g,l,r) = renderHtml $ do
     ghcIndex  = 
         "/usr/share/doc/ghc-" ++ (head $ g ! "version") ++ "/html"
     makeRow m = do
-        dt $ maybe (string n) (makeLink n) d
+        dt $ maybe (string n) (makeLink n) d <> string ("(" ++ v ++ ")")
         dd $ maybe mempty string s <> maybe mempty homepage h
       where
         makeLink t x = a H.! href (stringValue $ x ++ "/index.html") $ string t
@@ -56,3 +56,4 @@ makeDoc (g,l,r) = renderHtml $ do
         d = pkgAttr "haddock-html"
         s = pkgAttr "synopsis"
         h = pkgAttr "homepage"
+        v = fromJust $ pkgAttr "version"
