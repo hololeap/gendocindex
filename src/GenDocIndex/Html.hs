@@ -32,7 +32,7 @@ sortPairMaps = (\(g, l, r) -> (fromJust g, l, r))
         n   = head $ m ! "name"
 
 makeDoc :: (PairMap, NameMap, NameMap) -> String
-makeDoc (g,l,r) = renderHtml $ do
+makeDoc (g,l,r) = renderHtml $ docTypeHtml $ do
     H.head $ title mainTitle
     body $ do
         h2 mainTitle
