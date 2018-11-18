@@ -49,11 +49,11 @@ makeDoc (g,l,r) = renderHtml $ docTypeHtml $ do
         dt $ maybe (string n) (makeLink n) d <> string ("(" ++ v ++ ")")
         dd $ maybe mempty string s <> maybe mempty homepage h
       where
-        makeLink t x = a H.! href (stringValue $ x ++ "/index.html") $ string t
+        makeLink t x = (a H.! href (stringValue x)) (string t)
         homepage h' = string "(" <> makeLink "Homepage" h' <> string ")"
         pkgAttr x = intercalate "\n" <$> HM.lookup x m
         n = fromJust $ pkgAttr "name"
-        d = pkgAttr "haddock-html"
+        d = (++ "/index.html") <$> pkgAttr "haddock-html"
         s = pkgAttr "synopsis"
         h = pkgAttr "homepage"
         v = fromJust $ pkgAttr "version"
