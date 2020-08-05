@@ -1,41 +1,81 @@
 {-# Language ApplicativeDo #-}
+{-# Language LambdaCase #-}
+{-# Language OverloadedStrings #-}
+{-# Language ScopedTypeVariables #-}
 
-module GenDocIndex.Parse where
+module GenDocIndex.Parse
+    ( Key
+    , Value(..)
+    , withValue
+    , forceSingleVal
+    , PairMap
+    , Parser
+    , parser ) 
+    where
 
 import qualified Data.HashMap.Strict as M
 import           Data.HashMap.Strict (HashMap)
 
+import Control.Applicative (liftA2)
 import Data.List
-import Text.Parsec
-import Text.Parsec.Text
+import Data.Text (Text)
+import Data.Void (Void)
+import Text.Megaparsec
+import Text.Megaparsec.Char
+import Text.Megaparsec.Char.Lexer
 
-type PairMap = HashMap String [String]
+data Value =
+      SingleVal String
+    | BlockVal  [String]
+    deriving (Show, Eq)
+
+withValue :: (String -> a) -> ([String] -> a) -> Value -> a
+withValue fs fb = \case
+    SingleVal s -> fs s
+    BlockVal  b -> fb b
+
+forceSingleVal :: Value -> String
+forceSingleVal = withValue id (const $ error "forceSingleVal used on BlockVal")
+
+type Key = String
+type PairMap = HashMap Key [Value]
+
+type Parser = Parsec Void Text
 
 parser :: Parser [PairMap]
-parser = fmap (fmap finalize) $ sepBy block sep <* end
+parser = fmap (fmap mkPairMap) $ sepBy packageChunk sep <* end
   where
-    block :: Parser [(String, String)]
-    block = do
-        h  <- alphaNum
-        k  <- manyTill anyChar (char ':')
-        vs <- try vals <|> (endOfLine *> vals)
-        b  <- option [] block
-        pure $ (f h k <$> vs) ++ b
-      where
-        vals :: Parser [String]
-        vals = do
-            _  <- many1 (oneOf "\t ")
-            v  <- manyTill anyChar endOfLine
-            vs <- option [] vals
-            pure $ v : vs
+    sep = string "---" *> eol
+    end = eol *> eof
 
-        f h k v = (h:k,v)
+mkPairMap :: [(Key, Value)] -> PairMap
+mkPairMap = foldl' (\m (k,v) -> M.insertWith (++) k [v] m) M.empty
 
-    sep = string "---\n"
-    end = endOfLine *> eof
+mkBlockVal :: [[String]] -> Value
+mkBlockVal = BlockVal . fmap (intercalate " ")
 
-    finalize :: [(String, String)] -> PairMap
-    finalize = foldl' addToPairMap M.empty
-      where
-        addToPairMap m (k,v) = M.insertWith (++) k [v] m
-        
+packageChunk :: Parser [(Key, Value)]
+packageChunk = do
+    h  <- alphaNumChar
+    k  <- some $ satisfy (/= ':')
+    _  <- char ':'
+    v  <- choice
+            [ SingleVal <$> singleVal
+            , eol *> (mkBlockVal <$> blockVal) ]
+    b  <- option [] packageChunk
+    pure $ (h:k,v) : b
+
+singleVal :: Parser String
+singleVal = some (char ' ') *> someTill anySingle eol
+
+blockVal :: Parser [[String]]
+blockVal = choice
+    [ eol *> blockVal
+    , liftA2 (:) block blockVal
+    , [] <$ lookAhead alphaNumChar  ]
+
+block :: Parser [String]
+block = some val
+  where
+    val :: Parser String
+    val = some (char ' ') *> someTill anySingle eol

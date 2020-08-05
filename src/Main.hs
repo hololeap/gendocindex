@@ -6,7 +6,7 @@ import GenDocIndex.Html
 
 import qualified Data.Text as T
 import System.Process
-import Text.Parsec
+import Text.Megaparsec
 import UnliftIO.Exception
 
 main = do
