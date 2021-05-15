@@ -6,8 +6,6 @@
 module GenDocIndex.Parse
     ( Key
     , Value(..)
-    , withValue
-    , forceSingleVal
     , PairMap
     , Parser
     , parser ) 
@@ -22,20 +20,11 @@ import Data.Text (Text)
 import Data.Void (Void)
 import Text.Megaparsec
 import Text.Megaparsec.Char
-import Text.Megaparsec.Char.Lexer
 
 data Value =
       SingleVal String
     | BlockVal  [String]
     deriving (Show, Eq)
-
-withValue :: (String -> a) -> ([String] -> a) -> Value -> a
-withValue fs fb = \case
-    SingleVal s -> fs s
-    BlockVal  b -> fb b
-
-forceSingleVal :: Value -> String
-forceSingleVal = withValue id (const $ error "forceSingleVal used on BlockVal")
 
 type Key = String
 type PairMap = HashMap Key [Value]
@@ -52,7 +41,7 @@ mkPairMap :: [(Key, Value)] -> PairMap
 mkPairMap = foldl' (\m (k,v) -> M.insertWith (++) k [v] m) M.empty
 
 mkBlockVal :: [[String]] -> Value
-mkBlockVal = BlockVal . fmap (intercalate " ")
+mkBlockVal = BlockVal . fmap unwords
 
 packageChunk :: Parser [(Key, Value)]
 packageChunk = do
