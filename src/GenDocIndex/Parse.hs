@@ -1,11 +1,9 @@
-{-#
-     Language ApplicativeDo
-#-}
+{-# Language ApplicativeDo #-}
 
 module GenDocIndex.Parse where
 
-import qualified Data.HashMap.Lazy as M
-import           Data.HashMap.Lazy (HashMap)
+import qualified Data.HashMap.Strict as M
+import           Data.HashMap.Strict (HashMap)
 
 import Data.List
 import Text.Parsec
