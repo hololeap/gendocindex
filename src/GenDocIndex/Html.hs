@@ -30,8 +30,7 @@ type NameMap = HashMap String PairMap
 makeDoc :: forall m. MonadError AttrMissingError m =>
     (PairMap, NameMap, NameMap) -> m String
 makeDoc (g0,l0,r0) = do
-    ghcIndex <- getGHCIndex
-    g <- makeRow (M.insert "haddock-html" [SingleVal ghcIndex] g0)
+    g <- makeRow g0
     l <- fold <$> traverse makeRow (elemsSortedByKey l0)
     r <- fold <$> traverse makeRow (elemsSortedByKey r0)
     pure $ renderHtml $ docTypeHtml $ do
@@ -43,11 +42,6 @@ makeDoc (g0,l0,r0) = do
 
     mainTitle :: Markup
     mainTitle = string "Haskell Documentation"
-
-    getGHCIndex :: m String
-    getGHCIndex  = do
-        gv <- pkgAttrE "version" g0
-        pure $ "/usr/share/doc/ghc-" <> gv <> "/html"
 
     makeRow :: PairMap -> m Markup
     makeRow m = do

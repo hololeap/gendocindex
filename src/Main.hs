@@ -1,5 +1,5 @@
 
-module Main where
+module Main (main) where
 
 import GenDocIndex.Error
 import GenDocIndex.Parse

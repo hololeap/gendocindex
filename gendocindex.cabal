@@ -2,7 +2,7 @@
 -- documentation, see http://haskell.org/cabal/users-guide/
 
 name:                gendocindex
-version:             0.2.0.1
+version:             0.2.0.2
 synopsis:            Generate a documentation index for all Haskell packages installed with Portage
 -- description:
 homepage:            https://github.com/hololeap/gendocindex

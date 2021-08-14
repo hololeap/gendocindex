@@ -8,7 +8,7 @@ module GenDocIndex.Parse
     , Value(..)
     , PairMap
     , Parser
-    , parser ) 
+    , parser )
     where
 
 import qualified Data.HashMap.Strict as M
